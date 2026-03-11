@@ -1,0 +1,215 @@
+
+
+####################################################
+### Horizon development variables                ###
+### (Replace these if they're different for you) ###
+####################################################
+
+export HORIZON_DIR="$HOME/horizon"
+
+###################################
+### Horizon development aliases ###
+###################################
+
+# Starts the Horizon SQL server in an interactive prompt
+alias run-sql="LAST_CWD=$(pwd); cd $HORIZON_DIR/packages/horizon-database && pnpm run postgres-local:up; cd \"$LAST_CWD\""
+
+# Connects to the running Horizon SQL database
+alias conn-sql='docker exec -it horizon-postgres psql -U postgres -d horizon'
+
+# Restarts the SQL server
+alias restart-sql="cd $HORIZON_DIR/packages/horizon-database && pnpm postgres-all:down && pnpm postgres-local:up-detached"
+
+#####################################
+### Horizon development functions ###
+#####################################
+
+
+# Removes Docker persistent storage to reset internal data
+reset-docker-storage() {
+
+
+  # Get the containers
+  DOCKER_CONTAINERS=$(docker ps -a 2>/dev/null | awk '{print $1}' | grep -v 'CONTAINER')
+
+
+  # Get the volumes
+  DOCKER_VOLUMES=$(docker volume ls -q)
+
+  # We don't NEED any containers running, but this function
+  # serves no purpose if there are no volumes.
+  if [[ ! "$DOCKER_VOLUMES" ]]; then
+    echo "[!] No Docker volumes or Docker connection error."
+    return 1
+  fi
+
+  # Stop the containers
+  echo "[-] Stopping Docker containers"
+  docker kill $DOCKER_CONTAINERS 1>/dev/null 2>&1
+
+  # Wait for all containers to stop
+  echo "[-] Waiting for containers to exit"
+  docker wait $DOCKER_CONTAINERS 1>/dev/null
+
+  # Remove the containers
+  echo "[-] Removing containers"
+  docker rm $DOCKER_CONTAINERS 1>/dev/null
+
+
+  # Run actions from Docker .yaml files and package.json scripts
+  LAST_CWD=$(pwd)
+  cd $HORIZON_DIR && docker compose down --volumes 1>/dev/null 2>&1
+  cd $HORIZON_DIR/packages/horizon-database && pnpm postgres-all:down 1>/dev/null
+  cd $LAST_CWD
+
+  # Remove the volumes
+  echo "[-] Removing Docker volumes"
+  docker volume rm $DOCKER_VOLUMES
+
+
+
+  echo "Docker storage reset!"
+}
+
+# Nukes the horizon dir and wipes docker
+dev-nuke-all() {
+
+
+  # SIGINT trap
+  trap 'printf "\033[?1049l"; printf "Bailing out..."; return 1' SIGINT
+
+
+  ORIGINAL_IFS="$IFS"
+
+  # CLI parameter for re-installing after nuking
+  [[ "$1" == "--reset" ]] && RESET="true" || RESET="false"
+
+
+  # Default max line length (text formatting)
+  MAX_LINE_LENGTH=$(echo "$HORIZON_DIR and all of its contents" | wc -c)
+
+  MAX_CONT_LENGTH=0
+  DOCKER_CONTAINERS=$(docker ps 2>/dev/null | awk '{print $1 " " $2}' | grep -v CONTAINER)
+  [[ "$DOCKER_CONTAINERS" ]] || DOCKER_CONTAINERS="None None"
+  for CONTAINER in $DOCKER_CONTAINERS; do (( $(echo "$CONTAINER" | wc -c) > $MAX_CONT_LENGTH )) && MAX_CONT_LENGTH=$(echo "$CONTAINER" | wc -c); done
+
+  (( $MAX_CONT_LENGTH > $MAX_LINE_LENGTH )) && MAX_LINE_LENGTH=$MAX_CONT_LENGTH
+
+  MAX_VOL_LENGTH=0
+  DOCKER_VOLUMES=$(docker volume ls 2>/dev/null | grep 'local' | awk '{print $2}')
+  [[ "$DOCKER_VOLUMES" ]] || DOCKER_VOLUMES="None"
+  for VOLUME in $DOCKER_VOLUMES; do (( $(echo "$VOLUME" | wc -c) > $MAX_VOL_LENGTH )) && MAX_VOL_LENGTH=$(echo "$VOLUME" | wc -c); done
+
+  (( $MAX_VOL_LENGTH > $MAX_LINE_LENGTH )) && MAX_LINE_LENGTH=$MAX_VOL_LENGTH
+
+
+
+  # Setup horizontal rule w/ length $MAX_LINE_LENGTH
+  HORIZONTAL_RULE="$(printf '%*s' "$MAX_LINE_LENGTH" "" | tr ' ' '─')"
+  COLUMNS=$(tput cols)
+  [[ $(( $COLUMNS % 2 )) == 0 ]] || COLUMNS=$(( $COLUMNS + 1)) # Adjust COLUMNS to be an even number
+                                                               # Even if we're off by 1 index it'll keep everything aligned
+
+  #######
+  ### Big block of ugly code that handles the warning/confirmation message
+  #######
+
+  IFS=$'\n'
+
+  printf "\033[?1049h" # Switch to alternate screen buffer
+  LINE="[WARNING-DESTRUCTIVE]" && printf "\033[1;31m%*s\033[0m\n" $((($COLUMNS+${#LINE})/2)) "$LINE"
+  LINE="This will completely delete:" && printf "%*s\n\n" $((($COLUMNS+${#LINE})/2)) "$LINE"
+  LINE="All Docker containers" && printf "\n\033[1m%*s\033[0m\n" $((($COLUMNS+${#LINE})/2)) "$LINE"
+  printf "\n%*s\033[1m%s\033[0m\n\n" $(( ($COLUMNS - $MAX_LINE_LENGTH) / 2 )) "" "$HORIZONTAL_RULE"
+
+  for CONTAINER in $DOCKER_CONTAINERS; do
+    DELTA_LEN=$(( $MAX_LINE_LENGTH - $(echo $CONTAINER | wc -c) ))     # Get delta length
+    printf "%*s\n" $(( ( ( ($COLUMNS + ${#CONTAINER}) / 2) - $(( $DELTA_LEN / 2)) ) + 1 )) "- $CONTAINER"
+  done
+
+  LINE="All Docker volumes" && printf "\n\033[1m%*s\033[0m\n" $((($COLUMNS+${#LINE})/2)) "$LINE"
+  printf "\n%*s\033[1m%s\033[0m\n\n" $(( ($COLUMNS - $MAX_LINE_LENGTH) / 2 )) "" "$HORIZONTAL_RULE"
+
+  for VOLUME in $DOCKER_VOLUMES; do
+    DELTA_LEN=$(( $MAX_LINE_LENGTH - $(echo $VOLUME | wc -c) ))         # Get delta length
+    printf "%*s\n" $(( ( ( ($COLUMNS + ${#VOLUME}) / 2) - $(( $DELTA_LEN / 2)) ) + 1 )) "- $VOLUME"
+  done
+
+  printf "\n%*s\033[1m%s\033[0m\n\n" $(( ($COLUMNS - $MAX_LINE_LENGTH) / 2 )) "" "$HORIZONTAL_RULE"
+  LINE="$HORIZON_DIR and all of its contents" && printf "\n\033[1m%*s\033[0m\n\n" $((($COLUMNS+${#LINE})/2)) "$LINE"
+  LINE="Are you sure you want to continue? (y/n)" && printf "\n\033[1m%*s\033[0m\n" $((($COLUMNS+${#LINE})/2)) "$LINE"
+  read ANSWER
+
+  printf "\033[?1049l" # Return to normal screen buffer
+
+  if [[ "$ANSWER:u" != "Y" ]];then
+    /bin/echo "Bailing out..."
+    return 1
+  fi
+
+  IFS=$ORIGINAL_IFS
+
+
+  cd $HORIZON_DIR/packages/horizon-database && pnpm postgres-all:down
+  cd $HOME
+
+  DOCKER_CONTAINERS=$(echo $DOCKER_CONTAINERS | awk '{print $1}')
+
+  if [[ "$DOCKER_CONTAINERS" != 'None' ]]; then
+    echo "[-] Stopping Docker containers"
+
+    docker kill $DOCKER_CONTAINERS
+
+    echo "[-] Waiting for containers to exit"
+    docker wait $DOCKER_CONTAINERS
+
+    echo "[-] Removing containers"
+    docker rm $DOCKER_CONTAINERS
+
+  fi
+
+  docker container prune --force > /dev/null 2>&1
+
+  if [[ "$DOCKER_VOLUMES" != 'None' ]]; then
+    echo "[-] Removing Docker volumes"
+    docker volume rm --force $DOCKER_VOLUMES
+  fi
+
+  if [[ -d "$HORIZON_DIR" ]]; then
+    echo "[-] Removing $HORIZON_DIR"
+    /bin/rm -rf $HORIZON_DIR
+  fi
+
+  /bin/echo "Wipe completed!"
+
+  [[ "$RESET" == "false" ]] && return 0
+
+  echo "[+] Re-cloning Horizon main branch"
+  cd $(dirname $HORIZON_DIR)
+  git clone git@github.com:/spear-ai/horizon.git
+  cd horizon
+
+  echo "[+] Re-installing pnpm packages"
+  cd "$HORIZON_DIR"
+  pnpm install
+
+  echo "Reset completed!"
+  return 0
+}
+
+
+# Runs a query for columns and their constraints for the table provided in $1 on schema horizon_public
+query-table() {
+  if ! [[ "$1" ]]; then
+    /bin/echo "[Error] Please provide a table name." >&2
+    return 1
+  fi
+
+  printf "\033[1m[$1 columns]\033[0m\n\n"
+
+  docker exec -it horizon-postgres psql -U postgres -d horizon -c "SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_schema = 'horizon_public' AND table_name = '$1';"
+
+  printf "\n\033[1m[$1 constraints]\033[0m\n\n"
+
+  docker exec -it horizon-postgres psql -U postgres -d horizon -c "SELECT tc.constraint_name, tc.constraint_type, ccu.column_name FROM information_schema.table_constraints AS tc JOIN information_schema.constraint_column_usage AS ccu ON tc.constraint_name = ccu.constraint_name WHERE tc.table_schema = 'horizon_public' AND tc.table_name = '$1';"
+}

@@ -1,0 +1,73 @@
+#!/bin/zsh
+
+autoload -Uz add-zsh-hook
+autoload -Uz vcs_info
+setopt PROMPT_SUBST
+
+# Enable vcs_info only for git to keep things fast
+zstyle ':vcs_info:*' enable git
+
+# Tell vcs_info to check for staged and unstaged changes
+zstyle ':vcs_info:git:*' check-for-changes true
+
+# Set dummy strings so vcs_info populates the staged/unstaged variables
+zstyle ':vcs_info:git:*' stagedstr "staged"
+zstyle ':vcs_info:git:*' unstagedstr "unstaged"
+
+# Register a custom hook to modify the message before it's displayed
+zstyle ':vcs_info:git*+set-message:*' hooks git-color
+
+# Define the hook function
++vi-git-color() {
+    local bname=${hook_com[branch]}
+
+    if [[ "$bname" = "main" ]]; then
+        local color="%F{magenta}" # Default magenta for main branch
+    else
+        local color="%F{green}" # Default green otherwise
+    fi
+
+    # 1. Check repository dirtiness
+    if [[ -n ${hook_com[unstaged]} ]]; then
+        color="%F{red}"
+    elif [[ -n ${hook_com[staged]} ]]; then
+        color="%F{yellow}"
+    elif [[ -n $(git ls-files --other --exclude-standard 2> /dev/null) ]]; then
+        color="%F{cyan}"
+    fi
+
+    # 2. Check ahead/behind status against remote origin
+    local arrows=""
+    # Wrap the command in parentheses to create a Zsh array
+    local tracking_stats=($(git rev-list --left-right --count HEAD...@{u} 2>/dev/null))
+
+    # If the array has exactly two elements, we have valid tracking data
+    if (( ${#tracking_stats[@]} == 2 )); then
+        local ahead=${tracking_stats[1]}
+        local behind=${tracking_stats[2]}
+
+        # Build the indicator string (e.g., ↑2↓1)
+        (( ahead > 0 )) && arrows+="↑${ahead}"
+        (( behind > 0 )) && arrows+="↓${behind}"
+
+        # Add a space and color if we actually have arrows to display
+        [[ -n $arrows ]] && arrows=" %F{magenta}${arrows}%f"
+    fi
+
+    # 3. Assemble the final branch string
+    hook_com[branch]="${color}${bname}%f${arrows}"
+}
+
+
+
+# Define how the vcs_info message will be formatted
+# %b is the branch name (which our hook just colored)
+# %a is the action (e.g., rebase, merge)
+zstyle ':vcs_info:git:*' formats '[%b]'
+zstyle ':vcs_info:git:*' actionformats '[%b|%F{magenta}%a%f]'
+
+# Run vcs_info just before displaying the prompt
+add-zsh-hook precmd vcs_info
+
+# Build the final prompt
+PROMPT='${vcs_info_msg_0_:+${vcs_info_msg_0_}'$'\n''}'${PROMPT}

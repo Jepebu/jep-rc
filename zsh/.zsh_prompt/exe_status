@@ -1,0 +1,10 @@
+
+# Set the conditional prompt character string.
+CONDITIONAL_PROMPT_CHAR='%(?.%F{green}.%F{red})%#%f'
+
+# Replace prompt character if it's there, otherwise append it.
+if [[ "$PROMPT" = *'%#'* ]]; then
+  PROMPT="${PROMPT/'%#'/$CONDITIONAL_PROMPT_CHAR}"
+else
+  PROMPT="${PROMPT}${CONDITIONAL_PROMPT_CHAR} "
+fi

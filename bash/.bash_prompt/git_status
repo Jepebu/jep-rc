@@ -1,0 +1,85 @@
+#!/bin/bash
+
+if ! declare -f __prompt_command_wrapper > /dev/null; then
+    __prompt_modules=()
+
+    __run_prompt_modules() {
+        for func in "${__prompt_modules[@]}"; do $func; done
+
+        if [[ -z "$__ORIGINAL_PS1" ]]; then
+            __ORIGINAL_PS1="$PS1"
+            local _regex='(.*)(\\\$|\$|\\#|\#)(.*)$'
+            if [[ "$__ORIGINAL_PS1" =~ $_regex ]]; then
+                __BASE_PS1_PREFIX="${BASH_REMATCH[1]}"
+                __BASE_PS1_SUFFIX="${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+            else
+                __BASE_PS1_PREFIX="$__ORIGINAL_PS1"
+                __BASE_PS1_SUFFIX=""
+            fi
+        fi
+        PS1="${__git_info}${__BASE_PS1_PREFIX}${__exe_time_str}${__exe_status_color}${__BASE_PS1_SUFFIX}\[\e[0m\]"
+    }
+
+    __prompt_command_wrapper() {
+        __last_exit_code=$? # Capture exit code immediately
+        __is_in_prompt_command=1 # Turn on "do not disturb" for the timer
+
+        # Safely execute any pre-existing background commands
+        [[ -n "$__original_prompt_command" ]] && eval "$__original_prompt_command"
+
+        __run_prompt_modules
+
+        # Turn off "do not disturb" and clean up the timer for the next actual input
+        unset __is_in_prompt_command
+        unset __timer
+    }
+
+    if [[ "$PROMPT_COMMAND" != *"__prompt_command_wrapper"* ]]; then
+        if [[ "$PROMPT_COMMAND" != "__prompt_command_wrapper" ]]; then
+            __original_prompt_command="${PROMPT_COMMAND:-:}"
+        fi
+        PROMPT_COMMAND="__prompt_command_wrapper"
+    fi
+fi
+
+if ! declare -f __add_prompt_module > /dev/null; then
+    __add_prompt_module() {
+        for func in "${__prompt_modules[@]}"; do [[ "$func" == "$1" ]] && return; done
+        __prompt_modules+=("$1")
+    }
+fi
+
+__git_status_calc() {
+    __git_info=""
+    local bname
+
+    bname=$(git branch --show-current 2>/dev/null)
+    [[ -z "$bname" ]] && bname=$(git rev-parse --short HEAD 2>/dev/null)
+
+    if [[ -n "$bname" ]]; then
+        if [[ "$bname" = "main" ]]; then
+            local color="\[\e[35m\]" # Default magenta for main branch
+        else
+            local color="\[\e[32m\]" # Default green otherwise
+        fi
+
+        if ! git diff --no-ext-diff --quiet --exit-code 2>/dev/null; then color="\[\e[31m\]"
+        elif ! git diff --cached --no-ext-diff --quiet --exit-code 2>/dev/null; then color="\[\e[33m\]"
+        elif [[ -n $(git ls-files --other --exclude-standard 2>/dev/null) ]]; then color="\[\e[36m\]"
+        fi
+
+        local tracking_stats arrows=""
+        tracking_stats=$(git rev-list --left-right --count HEAD...@{u} 2>/dev/null)
+        if [[ -n "$tracking_stats" ]]; then
+            local stats_array=($tracking_stats)
+            if (( ${#stats_array[@]} == 2 )); then
+                (( stats_array[0] > 0 )) && arrows+="↑${stats_array[0]}"
+                (( stats_array[1] > 0 )) && arrows+="↓${stats_array[1]}"
+                [[ -n "$arrows" ]] && arrows=" \[\e[35m\]${arrows}\[\e[0m\]"
+            fi
+        fi
+
+        __git_info="${color}[${bname}\[\e[0m\]${arrows}${color}]\[\e[0m\]\n"
+    fi
+}
+__add_prompt_module "__git_status_calc"

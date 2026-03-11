@@ -1,0 +1,74 @@
+#!/bin/bash
+
+if ! declare -f __prompt_command_wrapper > /dev/null; then
+    __prompt_modules=()
+    __run_prompt_modules() {
+        for func in "${__prompt_modules[@]}"; do $func; done
+        if [[ -z "$__ORIGINAL_PS1" ]]; then
+            __ORIGINAL_PS1="$PS1"
+            local _regex='(.*)(\\\$|\$|\\#|\#)(.*)$'
+            if [[ "$__ORIGINAL_PS1" =~ $_regex ]]; then
+                __BASE_PS1_PREFIX="${BASH_REMATCH[1]}"
+                __BASE_PS1_SUFFIX="${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+            else
+                __BASE_PS1_PREFIX="$__ORIGINAL_PS1"
+                __BASE_PS1_SUFFIX=""
+            fi
+        fi
+        PS1="${__git_info}${__BASE_PS1_PREFIX}${__exe_time_str}${__exe_status_color}${__BASE_PS1_SUFFIX}\[\e[0m\]"
+    }
+    __prompt_command_wrapper() {
+        __last_exit_code=$?
+        __is_in_prompt_command=1
+        [[ -n "$__original_prompt_command" ]] && eval "$__original_prompt_command"
+        __run_prompt_modules
+        unset __is_in_prompt_command
+        unset __timer
+    }
+    if [[ "$PROMPT_COMMAND" != *"__prompt_command_wrapper"* ]]; then
+        if [[ "$PROMPT_COMMAND" != "__prompt_command_wrapper" ]]; then
+            __original_prompt_command="${PROMPT_COMMAND:-:}"
+        fi
+        PROMPT_COMMAND="__prompt_command_wrapper"
+    fi
+fi
+if ! declare -f __add_prompt_module > /dev/null; then
+    __add_prompt_module() {
+        for func in "${__prompt_modules[@]}"; do [[ "$func" == "$1" ]] && return; done
+        __prompt_modules+=("$1")
+    }
+fi
+
+__timer_start() {
+    # 1. Skip entirely if the wrapper is currently generating the prompt
+    if [[ -n "$__is_in_prompt_command" ]]; then
+        return
+    fi
+
+    # 2. Only start the timer if it is perfectly empty
+    if [[ -z "$__timer" ]]; then
+        __timer=$SECONDS
+    fi
+}
+
+# Attach the trap safely
+if [[ $(trap -p DEBUG) != *"__timer_start"* ]]; then
+    _existing_trap=$(trap -p DEBUG | grep -o "'.*'" | sed "s/^'//;s/'$//")
+    if [[ -n "$_existing_trap" ]]; then
+        trap "__timer_start; $_existing_trap" DEBUG
+    else
+        trap "__timer_start" DEBUG
+    fi
+fi
+
+__timer_stop() {
+    __exe_time_str=""
+    if [[ -n "$__timer" ]]; then
+        local elapsed=$((SECONDS - __timer))
+        if (( elapsed >= 1 )); then
+            __exe_time_str="\[\e[33m\]${elapsed}s\[\e[0m\] "
+        fi
+        # We do not unset __timer here; the master wrapper handles it safely at the very end
+    fi
+}
+__add_prompt_module "__timer_stop"

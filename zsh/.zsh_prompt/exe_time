@@ -1,0 +1,34 @@
+autoload -Uz add-zsh-hook
+
+# Load the datetime module to use EPOCHSECONDS
+zmodload zsh/datetime
+
+# Record the start time right before a command executes
+function timer_preexec() {
+    timer=${timer:-$EPOCHSECONDS}
+}
+
+# Calculate the elapsed time right before the prompt is drawn
+function timer_precmd() {
+    # 1. Always clear the execution time string first
+    EXEC_TIME=""
+
+    # 2. If a timer was set by preexec, calculate the difference
+    if [[ -n $timer ]]; then
+        local elapsed=$(($EPOCHSECONDS - $timer))
+
+        # Only populate the string if the command took 1 second or longer
+        if (( elapsed >= 1 )); then
+            EXEC_TIME="%F{yellow}${elapsed}s%f"
+        fi
+
+        # 3. Reset the timer variable for the next actual command
+        unset timer
+    fi
+}
+# Register the new hooks
+add-zsh-hook preexec timer_preexec
+add-zsh-hook precmd timer_precmd
+
+# Assign the variable to the right-hand prompt
+export RPROMPT="${EXEC_TIME}"
