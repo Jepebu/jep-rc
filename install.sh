@@ -22,8 +22,8 @@ for FILE in $INSTALL_FILES; do
 done
 
 for DIR in $INSTALL_DIRS; do
-  [[ -f "$HOME/$(basename $DIR)" ]] && mv "$HOME/$(basename $DIR)" "$STORAGE_DIR/$(basename $DIR)"
-  cp -rv $DIR "$HOME/$(basename $DIR)" >> $LOG_FILE 2>> $ERR_LOG_FILE
+  [[ -d "$HOME/$(basename $DIR)" ]] && mv "$HOME/$(basename $DIR)" "$STORAGE_DIR/$(basename $DIR)"
+  cp -rv $DIR/ "$HOME/$(basename $DIR)/" >> $LOG_FILE 2>> $ERR_LOG_FILE
 done
 
 
