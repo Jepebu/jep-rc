@@ -1,10 +1,17 @@
+# Enable dynamic prompt evaluation
+setopt PROMPT_SUBST
 
-# Set the conditional prompt character string.
-CONDITIONAL_PROMPT_CHAR='%(?.%F{green}.%F{red})%#%f'
-
-# Replace prompt character if it's there, otherwise append it.
-if [[ "$PROMPT" = *'%#'* ]]; then
-  PROMPT="${PROMPT/'%#'/$CONDITIONAL_PROMPT_CHAR}"
-else
-  PROMPT="${PROMPT}${CONDITIONAL_PROMPT_CHAR} "
+# Idempotent injection into PROMPT
+# Check to see if the conditional success/failure block is already there
+if [[ "$PROMPT" != *'%(?.'* ]]; then
+    
+    # Safely replace the first instance of '%#' with the colored version
+    if [[ "$PROMPT" == *'%#'* ]]; then
+        # The syntax ${VARIABLE/'SEARCH'/'REPLACE'} does a first-match replacement
+        PROMPT=${PROMPT/'%#'/'%(?.%F{green}.%F{red})%#%f'}
+        
+    # Fallback: if you used a literal '$' instead of '%#' in your base prompt
+    elif [[ "$PROMPT" == *'$'* ]]; then
+        PROMPT=${PROMPT/'$'/'%(?.%F{green}.%F{red})$%f'}
+    fi
 fi

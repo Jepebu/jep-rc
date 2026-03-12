@@ -3,6 +3,9 @@ autoload -Uz add-zsh-hook
 # Load the datetime module to use EPOCHSECONDS
 zmodload zsh/datetime
 
+# Enable dynamic prompt evaluation
+setopt PROMPT_SUBST
+
 # Record the start time right before a command executes
 function timer_preexec() {
     timer=${timer:-$EPOCHSECONDS}
@@ -31,4 +34,4 @@ add-zsh-hook preexec timer_preexec
 add-zsh-hook precmd timer_precmd
 
 # Assign the variable to the right-hand prompt
-export RPROMPT="${EXEC_TIME}"
+export RPROMPT='${EXEC_TIME}'

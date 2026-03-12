@@ -25,7 +25,7 @@ export PATH
 ### Shell Options ###
 #####################
 
-setopt CORRECTALL    # Offer corrections for minor mistakes in command / argument spelling and prompt with "[nyae]" - short for "No Yes Abort Edit"
+# setopt CORRECTALL    # Offer corrections for minor mistakes in command / argument spelling and prompt with "[nyae]" - short for "No Yes Abort Edit"
 # Ex.
 # matthewbragg@Matthews-MacBook-Air zsh % cat ~/.zshc
 # zsh: correct '~/.zshc' to '~/.zshrc' [nyae]?
@@ -151,7 +151,6 @@ export PROMPT="%F{blue}%n%f@%m %F{cyan}%1~%f %# "
 ### Advanced Prompt Configurations ###
 ######################################
 
-source $HOME/.zsh_prompt/*
-# .zsh_prompt/git_status - Display git branch stats on line above prompt
-# .zsh_prompt/exe_time   - Display last command execution time
-# .zsh_prompt/exe_status - Display the last command return status
+source $HOME/.zsh_prompt/git_status # Display git branch stats on line above prompt
+source $HOME/.zsh_prompt/exe_time   # Display last command execution time
+source $HOME/.zsh_prompt/exe_status # Display the last command return status

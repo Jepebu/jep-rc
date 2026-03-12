@@ -133,7 +133,6 @@ PS1="\[\e[34m\]\u@\h\[\e[0m\] \[\e[36m\]\w\[\e[0m\] \$ "
 ### Advanced Prompt Configurations ###
 ######################################
 
-source $HOME/.bash_prompt/*
-# .bash_prompt/git_status - Display git branch stats on line above prompt
-# .bash_prompt/exe_time   - Display last command execution time
-# .bash_prompt/exe_status - Display the last command return status
+source $HOME/.bash_prompt/git_status # Display git branch stats on line above prompt
+source $HOME/.bash_prompt/exe_time   # Display last command execution time
+source $HOME/.bash_prompt/exe_status # Display the last command return status
