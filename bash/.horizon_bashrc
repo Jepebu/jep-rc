@@ -197,6 +197,28 @@ dev-nuke-all() {
   return 0
 }
 
+# Executes sql code from a given file in the horizon database
+exe-sql() {
+  if ! [[ "$1" ]]; then
+    /bin/echo "[Error] Please provide a file to execute." >&2
+    return 1
+  fi
+
+  FILE_CONTENTS="$(cat $1)"
+
+  docker exec -it horizon-postgres psql --echo-all --echo-errors -U postgres -d horizon -c "$FILE_CONTENTS"
+
+}
+
+# Runs a query for function name and arguments within the database
+query-function() {
+  if ! [[ "$1" ]]; then
+    /bin/echo "[Error] Please provide a function name." >&2
+    return 1
+  fi
+
+  docker exec -it horizon-postgres psql -U postgres -d horizon -c "SELECT p.proname AS name, pg_get_function_arguments(p.oid) AS arguments FROM pg_proc AS p WHERE p.proname = '$1';"
+}
 
 # Runs a query for columns and their constraints for the table provided in $1 on schema horizon_public
 query-table() {

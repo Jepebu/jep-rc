@@ -293,7 +293,7 @@ exe-sql() {
 
 }
 
-# Verifies an object exists in the database
+# Runs a query for function name and arguments within the database
 query-function() {
   if ! [[ "$1" ]]; then
     /bin/echo "[Error] Please provide a function name." >&2

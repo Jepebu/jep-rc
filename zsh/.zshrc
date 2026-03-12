@@ -64,11 +64,13 @@ export BOTTOM_RIGHT='┘'
 ### Builtin Overrides
 alias ls="ls -a --color='always'"
 alias c='clear'
-alias grep='egrep' # Replace MacOS builtin grep with Homebrew egrep
+
+# Commented out by default due to it being a Homebrew installation - use 'brew install egrep' and uncomment to enable the alias
+# alias grep='egrep' # Replace MacOS builtin grep with Homebrew egrep
 
 ### Git aliases
-alias current-branch="git branch --list | grep '\*' | awk '{print \$2}'"
-alias bl='git branch --list'
+alias current-branch="git branch --show-current"
+alias bl='git branch --list' # Shorthand to list git branches (bl - branch list)
 
 
 #################
@@ -97,7 +99,8 @@ pgrep() {
 #####################
 
 # rustup environment config
-. /opt/homebrew/opt/rustup/share/zsh/site-functions
+# Commented out by default due to it being a Homebrew installation - use 'brew install rustup' and uncomment to enable the configurations
+# . /opt/homebrew/opt/rustup/share/zsh/site-functions
 
 # Config for Horizon development
 . $HOME/.horizon_zshrc
@@ -148,6 +151,7 @@ export PROMPT="%F{blue}%n%f@%m %F{cyan}%1~%f %# "
 ### Advanced Prompt Configurations ###
 ######################################
 
-source $HOME/.zsh_prompt/git_status   # Display git branch stats on line above prompt
-source $HOME/.zsh_prompt/exe_time     # Display last command execution time
-source $HOME/.zsh_prompt/exe_status   # Display the last command return status
+source $HOME/.zsh_prompt/*
+# .zsh_prompt/git_status - Display git branch stats on line above prompt
+# .zsh_prompt/exe_time   - Display last command execution time
+# .zsh_prompt/exe_status - Display the last command return status

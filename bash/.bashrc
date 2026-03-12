@@ -58,7 +58,8 @@ export BOTTOM_RIGHT='┘'
 ### Builtin Overrides (personal preference)
 alias ls="ls -a --color='always'"
 alias c='clear'
-alias grep='egrep' # Replace MacOS builtin grep with Homebrew egrep
+# Commented out by default due to it being a Homebrew installation - use 'brew install egrep' and uncomment to enable the alias
+# alias grep='egrep' # Replace MacOS builtin grep with Homebrew egrep
 
 ### Git aliases
 alias current-branch="git branch --list | grep '\*' | awk '{print \$2}'"
@@ -116,9 +117,9 @@ pgrep() {
 # Format codes:
 # - Bold:         \e[1m  \[\e[1m\]
 # - Italic:       \e[3m  \[\e[3m\]
-# - Underline:    \e[4m \[\e[4m\]
+# - Underline:    \e[4m  \[\e[4m\]
 # Other:
-# - Reset format: \e[0m \[\e[0m\]
+# - Reset format: \e[0m  \[\e[0m\]
 
 ### Default bash prompt
 ### Ex. matthewbragg@Matthews-MacBook-Air ~ $
@@ -132,6 +133,7 @@ PS1="\[\e[34m\]\u@\h\[\e[0m\] \[\e[36m\]\w\[\e[0m\] \$ "
 ### Advanced Prompt Configurations ###
 ######################################
 
-source $HOME/.bash_prompt/git_status   # Display git branch stats on line above prompt
-source $HOME/.bash_prompt/exe_time     # Display last command execution time
-source $HOME/.bash_prompt/exe_status   # Display the last command return status
+source $HOME/.bash_prompt/*
+# .bash_prompt/git_status - Display git branch stats on line above prompt
+# .bash_prompt/exe_time   - Display last command execution time
+# .bash_prompt/exe_status - Display the last command return status
