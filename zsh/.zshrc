@@ -26,6 +26,10 @@ export PATH
 #####################
 
 setopt CORRECTALL    # Offer corrections for minor mistakes in command / argument spelling and prompt with "[nyae]" - short for "No Yes Abort Edit"
+# Ex.
+# matthewbragg@Matthews-MacBook-Air zsh % cat ~/.zshc
+# zsh: correct '~/.zshc' to '~/.zshrc' [nyae]?
+
 setopt AUTO_CD       # Change into a directory if provided on the command line without 'cd'
 setopt GLOB_DOTS     # Include dot files (Ex .zshrc) in filename expansion
 setopt KSH_GLOB      # Enabled extended pathname expansion such as !(pattern) and @(pattern)
