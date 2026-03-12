@@ -62,11 +62,17 @@ The most notable functions and aliases can be found in your respective shell's `
 Below is an incomplete list of the definitions within the shell files.
 
 #### Specific to Horizon
-- `nuke-sql`               : Destructively resets the Horizon database.
-- `reset-docker-storage`   : Wipes out persistent Docker storage volumes and containers so prevent cross-over between git branches.
-- `hzn-switch`             : Calls `git switch` on the branch matching `*/hzn-$1-*`.
-- `exe-sql`                : Executes the contents of the file provided in `$1` on the Horizon database.
-- `dev-nuke-all (--reset)` : Completely wipes `$HORIZON_DIR` and all Docker containers/volumes, with the option `--reset` re-cloning Horizon and running `pnpm install`.
+- `nuke-sql`
+  - Destructively resets the Horizon database.
+- `reset-docker-storage`
+  - Wipes out persistent Docker storage volumes and containers so prevent cross-over between git branches.
+- `hzn-switch`
+  - Calls `git switch` on the branch matching `*/hzn-$1-*`.
+- `exe-sql`
+  - Executes the contents of the file provided in `$1` on the Horizon database.
+- `dev-nuke-all (--reset)`
+  - Completely wipes `$HORIZON_DIR` and all Docker containers/volumes, with the option `--reset` re-cloning Horizon and running `pnpm install`.
 
 #### General use
-- `pgrep` : Wrapper function for MacOS built-in `pgrep` which uses `ps` to provide more detailed process information.
+- `pgrep`
+  - Wrapper function for MacOS built-in `pgrep` which uses `ps` to provide more detailed process information.
