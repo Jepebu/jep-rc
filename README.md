@@ -14,6 +14,11 @@ cd horizon-rc
 ./install.sh
 ```
 
+3. Source the new shell configuration file
+```
+source ~/.zshrc # Or source ~/.bashrc if you're using bash
+```
+
 For a partial integration, you can cherry pick whichever parts of the configuration files you like and add them to your own.
 
 
