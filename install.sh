@@ -14,7 +14,7 @@ STORAGE_DIR=$HOME/.horizon-rc/$RANDOM_UUID
 mkdir -p $STORAGE_DIR
 
 INSTALL_FILES="$HORIZON_RC_DIR/zsh/.zshrc $HORIZON_RC_DIR/zsh/.horizon_zshrc $HORIZON_RC_DIR/bash/.bashrc $HORIZON_RC_DIR/bash/.horizon_bashrc"
-INSTALL_DIRS="$HORIZON_RC_DIR/zsh/.zsh_prompt $HORIZON_RC_DIR/bash/.bash_prompt"
+INSTALL_DIRS="$HORIZON_RC_DIR/zsh/.zsh_prompt $HORIZON_RC_DIR/zsh/.zsh_functions $HORIZON_RC_DIR/bash/.bash_prompt $HORIZON_RC_DIR/bash/.bash_functions"
 
 for FILE in $INSTALL_FILES; do
   [[ -f "$HOME/$(basename $FILE)" ]] && mv "$HOME/$(basename $FILE)" "$STORAGE_DIR/$(basename $FILE)"

@@ -77,22 +77,16 @@ alias bl='git branch --list' # Shorthand to list git branches (bl - branch list)
 ### Functions ###
 #################
 
-### Personal pgrep wrapper
-# Displays each process with more detailed information
-# than what MacOS pgrep has the capabilities for.
+# Store personal functions in ~/.zsh_functions/* for better modularity.
+# Default configuration comes with:
+# - pgrep() : Wrapper for MacOS pgrep which uses ps to provide more information on processes.
 
-# Always reset $__ORIGINAL_PGREP__ to make sure we have the newest executable in $PATH
-typeset -f pgrep >/dev/null && unset -f pgrep
-__ORIGINAL_PGREP__=$(which pgrep)
+FUNC_FILES=$(/bin/ls $HOME/.zsh_functions)
 
-pgrep() {
+for FUNC in ${=FUNC_FILES}; do
+  source $HOME/.zsh_functions/$FUNC
+done
 
-  PIDS=$($__ORIGINAL_PGREP__ $@ | awk '{print $1}')
-  [[ "$PIDS" ]] || return 1
-
-  ps -o 'pid user etime command' -p ${=PIDS} | less -Fn
-
-}
 
 #####################
 ### Extra Configs ###
@@ -103,7 +97,7 @@ pgrep() {
 # . /opt/homebrew/opt/rustup/share/zsh/site-functions
 
 # Config for Horizon development
-. $HOME/.horizon_zshrc
+[[ -f $HOME/.horizon_zshrc ]] && source $HOME/.horizon_zshrc
 
 ###################################
 ### Basic Prompt Configurations ###
@@ -151,6 +145,6 @@ export PROMPT="%F{blue}%n%f@%m %F{cyan}%1~%f %# "
 ### Advanced Prompt Configurations ###
 ######################################
 
-source $HOME/.zsh_prompt/git_status # Display git branch stats on line above prompt
-source $HOME/.zsh_prompt/exe_time   # Display last command execution time
-source $HOME/.zsh_prompt/exe_status # Display the last command return status
+[[ -f $HOME/.zsh_prompt/git_status ]] && source $HOME/.zsh_prompt/git_status # Display git branch stats on line above prompt
+[[ -f $HOME/.zsh_prompt/exe_time   ]] && source $HOME/.zsh_prompt/exe_time   # Display last command execution time
+[[ -f $HOME/.zsh_prompt/exe_status ]] && source $HOME/.zsh_prompt/exe_status # Display the last command return status

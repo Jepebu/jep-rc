@@ -1,0 +1,16 @@
+### Personal pgrep wrapper
+# Displays each process with more detailed information
+# than what MacOS pgrep has the capabilities for.
+
+# Always reset $__ORIGINAL_PGREP__ to make sure we have the newest executable in $PATH
+typeset -f pgrep >/dev/null && unset -f pgrep
+__ORIGINAL_PGREP__=$(which pgrep)
+
+pgrep() {
+
+  PIDS=$($__ORIGINAL_PGREP__ $@ | awk '{print $1}')
+  [[ "$PIDS" ]] || return 1
+
+  ps -o 'pid user etime command' -p ${=PIDS} | less -Fn
+
+}

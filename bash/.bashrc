@@ -70,29 +70,20 @@ alias bl='git branch --list'
 ### Functions ###
 #################
 
-### Personal pgrep wrapper
-# Displays each process with more detailed information
-# than what MacOS pgrep has the capabilities for.
+# Store personal functions in ~/.bash_functions/* for better modularity.
+# Default configuration comes with:
+# - pgrep() : Wrapper for MacOS pgrep which uses ps to provide more information on processes.
 
-# Always reset $__ORIGINAL_PGREP__ to make sure we have the newest executable in $PATH
-typeset -f pgrep >/dev/null && unset -f pgrep
-__ORIGINAL_PGREP__=$(which pgrep)
-
-pgrep() {
-
-  PIDS=$($__ORIGINAL_PGREP__ $@ | awk '{print $1}')
-  [[ "$PIDS" ]] || return 1
-
-  ps -o 'pid user etime command' -p ${=PIDS} | less -Fn
-
-}
+for FUNC in $(/bin/ls $HOME/.bash_functions); do
+  source $HOME/.bash_functions/$FUNC
+done
 
 #####################
 ### Extra Configs ###
 #####################
 
 # Config for Horizon development
-. $HOME/.horizon_bashrc
+[[ -f $HOME/.horizon_bashrc ]] && source $HOME/.horizon_bashrc
 
 ###################################
 ### Basic Prompt Configurations ###
@@ -133,6 +124,6 @@ PS1="\[\e[34m\]\u@\h\[\e[0m\] \[\e[36m\]\w\[\e[0m\] \$ "
 ### Advanced Prompt Configurations ###
 ######################################
 
-source $HOME/.bash_prompt/git_status # Display git branch stats on line above prompt
-source $HOME/.bash_prompt/exe_time   # Display last command execution time
-source $HOME/.bash_prompt/exe_status # Display the last command return status
+[[ -f $HOME/.bash_prompt/git_status ]] && source $HOME/.bash_prompt/git_status # Display git branch stats on line above prompt
+[[ -f $HOME/.bash_prompt/exe_time   ]] && source $HOME/.bash_prompt/exe_time   # Display last command execution time
+[[ -f $HOME/.bash_prompt/exe_status ]] && source $HOME/.bash_prompt/exe_status # Display the last command return status
