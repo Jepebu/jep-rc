@@ -1,12 +1,13 @@
-# horizon-rc
-horizon-rc is a small collection of shell configuration files for zsh and bash which make development a bit easier.
+# jep-rc
+jep-rc is a small collection of shell configuration files for zsh and bash.
+Originally created for use with my development profile, this fork is adapted for general use.
 
 ## Install
 To replace your current shell configurations, follow these two steps:  
 1. Clone the repository
 ```
-git clone https://github.com/mbragg-spear/horizon-rc.git
-cd horizon-rc
+git clone https://github.com/Jepebu/jep-rc.git
+cd jep-rc
 ```
 
 2. Run the installation
@@ -62,22 +63,6 @@ matthewbragg@Matthews-MacBook-Air ~ $ sleep 5
 matthewbragg@Matthews-MacBook-Air ~ 5s $
 ```
 
-### Functions/Aliases
-The most notable functions and aliases can be found in your respective shell's `~/.horizon_(ba|z)shrc` file.  
-Below is an incomplete list of the definitions within the shell files.
-
-#### Specific to Horizon
-- `nuke-sql`
-  - Destructively resets the Horizon database.
-- `reset-docker-storage`
-  - Wipes out persistent Docker storage volumes and containers so prevent cross-over between git branches.
-- `hzn-switch`
-  - Calls `git switch` on the branch matching `*/hzn-$1-*`.
-- `exe-sql`
-  - Executes the contents of the file provided in `$1` on the Horizon database.
-- `dev-nuke-all (--reset)`
-  - Completely wipes `$HORIZON_DIR` and all Docker containers/volumes, with the option `--reset` re-cloning Horizon and running `pnpm install`.
-
-#### General use
+#### General use 
 - `pgrep`
   - Wrapper function for MacOS built-in `pgrep` which uses `ps` to provide more detailed process information.
